@@ -22,7 +22,7 @@ for filename in os.listdir():
         file_creation_time = os.path.getmtime(filename)
 
         # Проверяем, прошло ли менее 15 секунд с момента создания файла
-        if current_time - file_creation_time < 15:
+        if current_time - file_creation_time < 10:
             detector = MTCNN()
             image = cv2.cvtColor(cv2.imread(filename), cv2.COLOR_BGR2RGB)
             result = detector.detect_faces(image)
