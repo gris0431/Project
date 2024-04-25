@@ -10,6 +10,14 @@
 # Необходимые команды перед запуском проекта
 
 pip install mtcnn
+
 pip install tensorflow
+
 pip install opencv-python
+
 pip install dlib
+
+# Дополнительные модели
+dlib_face_recognition_resnet_model_v1.dat - модель для определения человека в кадре(проверяет есть ли человек в кадре, и, пока он не ушёл из кадра, программа не делает снимки)
+
+shape_predictor_68_face_landmarks.dat - 68 точечная модель для определения лица человека
