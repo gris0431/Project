@@ -1,17 +1,21 @@
-﻿
+
 from datetime import datetime, timedelta
 from cgitb import text
 from email import message
 from email.policy import default
-import telebot;
+import telebot
 from telebot import types
 import os
 import time
 import random
 import cv2
 
+allowed = [
+    "701143942"
+    ]
+
 bot = telebot.TeleBot('7058821742:AAFF-CXycpTOK8JNMNTK8sIRlJPjAWxuI2A')
-animals_dir = "AnimalTest\\"
+animals_dir = "AnimalTest"
 cam_dir = "CamTest\\"
 images = os.listdir(animals_dir)
 for i in range(len(images)):
@@ -28,74 +32,96 @@ names = [ "котик",
 
 names_num = len(names)-1
 
-report_message = "\nКотики:5\nПесики:4\nХомячки:7"
-
 @bot.message_handler(commands=['start','stop'])
 def start(message):
-    global streaming
-    global learning
-    global improving
-    streaming = True
-    learning = False
-    improving = False
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True) #наша клавиатура
-    key_start_learning = types.KeyboardButton('Начать обучение') #кнопка «Начать обучение»
-    key_start_correction = types.KeyboardButton('Улучшить точность') #кнопка «Начать обучение»
-    key_show_report = types.KeyboardButton('Показать отчет за последние сутки')
-    keyboard.add(key_start_learning ,key_start_correction, key_show_report)
-    bot.send_message(message.chat.id, text="Режим дежурства",reply_markup=keyboard)
-    check(message)
-    while streaming:
-        stream(message)
-        time.sleep(3)
+    if (is_allowed(message)):
+        bot.send_message(message.chat.id, text="Доступ разрешен") 
+        global streaming
+        global learning
+        global improving
+        streaming = True
+        learning = False
+        improving = False
+        keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True) #наша клавиатура
+        key_start_learning = types.KeyboardButton('Начать обучение') #кнопка «Начать обучение»
+        key_start_correction = types.KeyboardButton('Улучшить точность') #кнопка «Начать обучение»
+        key_show_report = types.KeyboardButton('Показать отчет за последние сутки')
+        keyboard.add(key_start_learning ,key_start_correction, key_show_report)
+        bot.send_message(message.chat.id, text="Режим дежурства",reply_markup=keyboard)
+        check(message)
+        os.chdir("photo")
+        while streaming:
+            for filename in os.listdir():
+                current_time = time.time()
+                creation_time = os.path.getmtime(filename)
+                if (filename.endswith(".jpg")) and (current_time - creation_time < 15):
+                   bot.send_photo(message.chat.id, filename)
+                   bot.send_message(message.chat.id, text="Обнаружен человек") 
+    else:
+        bot.send_message(message.chat.id, text="Доступ запрещен") 
 
 @bot.message_handler(commands=['check'])
 def check(message):
-    # Включаем первую камеру
-    cap = cv2.VideoCapture(0)
-# "Прогреваем" камеру, чтобы снимок не был тёмным
-    for i in range(30):
-        cap.read()
-# Делаем снимок    
-    ret, frame = cap.read()
-# Записываем в файл
-    cv2.imwrite(cam_dir+'cam.png', frame)   
-# Отключаем камеру
-    cap.release()
-    bot.send_photo(message.chat.id, open(cam_dir+"cam.png", 'rb'))
+    if (is_allowed(message)):
+        bot.send_message(message.chat.id, text="Доступ разрешен") 
+        # Включаем первую камеру
+        cap = cv2.VideoCapture(0)
+    # "Прогреваем" камеру, чтобы снимок не был тёмным
+        for i in range(30):
+            cap.read()
+    # Делаем снимок    
+        ret, frame = cap.read()
+    # Записываем в файл
+        cv2.imwrite(cam_dir+'cam.png', frame)   
+    # Отключаем камеру
+        cap.release()
+        bot.send_photo(message.chat.id, open(cam_dir+"cam.png", 'rb'))
+    
+    else:
+        bot.send_message(message.chat.id, text="Доступ запрещен")     
 
 @bot.message_handler(commands=['learn'])
 def learn(message):
-    global streaming
-    global learning
-    streaming = False
-    learning = True
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    back_btn = types.KeyboardButton("Закончить обучение")
-    markup.add(back_btn)
-    bot.send_message(message.chat.id, text="Режим обучения",  reply_markup=markup)
-    i = random.randint(0, photos_num)
-    j = random.randint(0, names_num)
-    bot.send_photo(message.chat.id, open(animals_dir+"\\"+images[i], 'rb'))
-    bot.send_message(message.chat.id, text="Кто это?".format(names[j]))
+    if (is_allowed(message)):
+        bot.send_message(message.chat.id, text="Доступ разрешен") 
+        global streaming
+        global learning
+        streaming = False
+        learning = True
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        back_btn = types.KeyboardButton("Закончить обучение")
+        markup.add(back_btn)
+        bot.send_message(message.chat.id, text="Режим обучения",  reply_markup=markup)
+        i = random.randint(0, photos_num)
+        j = random.randint(0, names_num)
+        bot.send_photo(message.chat.id, open(animals_dir+"\\"+images[i], 'rb'))
+        bot.send_message(message.chat.id, text="Кто это?".format(names[j]))
+        
+    else:
+        bot.send_message(message.chat.id, text="Доступ запрещен") 
     
 @bot.message_handler(commands=['improvement'])
-def improvment(message):
-    global streaming
-    global improving
-    streaming = False
-    improving = True
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    end_btn = types.KeyboardButton("Закончить улучшение точности")
-    yes_btn = types.KeyboardButton("Да")
-    no_btn = types.KeyboardButton("Нет")
-    skip_btn = types.KeyboardButton("Нет человека")
-    markup.add(yes_btn, no_btn, skip_btn, end_btn)
-    bot.send_message(message.chat.id, text="Режим улучшения точности", reply_markup=markup)
-    i = random.randint(0, photos_num)
-    j = random.randint(0, names_num)
-    bot.send_photo(message.chat.id, open(animals_dir+"\\"+images[i], 'rb'))
-    bot.send_message(message.chat.id, text="Это {}?".format(names[j]))
+def improve(message):
+    if (is_allowed(message)):
+        bot.send_message(message.chat.id, text="Доступ разрешен") 
+        global streaming
+        global improving
+        streaming = False
+        improving = True
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        end_btn = types.KeyboardButton("Закончить улучшение точности")
+        yes_btn = types.KeyboardButton("Да")
+        no_btn = types.KeyboardButton("Нет")
+        skip_btn = types.KeyboardButton("Нет человека")
+        markup.add(yes_btn, no_btn, skip_btn, end_btn)
+        bot.send_message(message.chat.id, text="Режим улучшения точности", reply_markup=markup)
+        i = random.randint(0, photos_num)
+        j = random.randint(0, names_num)
+        bot.send_photo(message.chat.id, open(animals_dir+"\\"+images[i], 'rb'))
+        bot.send_message(message.chat.id, text="Это {}?".format(names[j]))
+        
+    else:
+        bot.send_message(message.chat.id, text="Доступ запрещен") 
     
 @bot.message_handler(commands=['report'])
 def report(message):
@@ -149,7 +175,7 @@ def help(message):
 def func(message):
     
     if(message.text == "Улучшить точность"):
-        improvment(message)
+        improve(message)
      
     elif(message.text == "Начать обучение"):
         learn(message)
@@ -187,5 +213,10 @@ def stream(message):
     
 def wrong_command(message):
     bot.send_message(message.chat.id, text="Неверная команда, для того, чтобы посмотреть список доступных команд напишите /help")
-        
+    
+def is_allowed(message):
+    if (message.chat.id in allowed):
+        return True
+    return False
+    
 bot.polling(none_stop=True, interval=0)
