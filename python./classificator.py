@@ -1,30 +1,66 @@
-from keras.preprocessing.image import ImageDataGenerator
+import pandas as pd
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential
-from keras.layers import Conv2D, MaxPooling2D
-from keras.layers import Activation, Dropout, Flatten, Dense
+from keras.layers import Conv2D, MaxPooling2D, Activation, Dropout, Flatten, Dense
 from keras import backend as K
+from sklearn.model_selection import train_test_split
+import numpy as np
+import os
+from keras.preprocessing import image
 
-image_width, image_height = 250, 250 # Указываем разрешение для изображений к единому формату
+# Указываем разрешение для изображений к единому формату
+image_width, image_height = 250, 250
 
-directory_data_train= 'dir/train' #Указываем путь к обучающей выборке train_data_dir
-directory_data_validation= 'dir/validation'  #Указываем путь к проверочной выборке validation_data_dir
+# Указываем путь к исходной папке с данными
+directory_data = 'photo/photo_network'
 
-# Сразу устанавливаем необходимые параметры
+# Функция для загрузки изображений и меток из директории
+def load_images_from_directory(directory):
+    images = []
+    labels = []
+    for subdir, _, files in os.walk(directory):
+        for file in files:
+            img_path = os.path.join(subdir, file)
+            img = image.load_img(img_path, target_size=(image_width, image_height))
+            img_array = image.img_to_array(img)
+            img_array /= 255.0
+            images.append(img_array)
+            label = os.path.basename(subdir)
+            labels.append(label)
+    return np.array(images), np.array(labels)
 
-train_sample = 1450
-validation_sample = 850
-epochs = 8
-lot_size = 25  #batch_size
+# Загрузка данных
+X, y = load_images_from_directory(directory_data)
+
+# Загрузка меток из CSV-файла
+labels_df = pd.read_csv('photo/labels.csv')
+
+# Извлечение меток из DataFrame
+y = labels_df['label'].values
+
+# Разделение данных на выборки
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Преобразуем метки в категориальный формат
+from keras.utils import to_categorical
+from sklearn.preprocessing import LabelEncoder
+
+label_encoder = LabelEncoder()
+y_train_enc = to_categorical(label_encoder.fit_transform(y_train))
+y_test_enc = to_categorical(label_encoder.transform(y_test))
+
+# Настройка параметров модели
 if K.image_data_format() != 'channels_first':
-     input_shape = (image_width, image_height, 3)
+    input_shape = (image_width, image_height, 3)
 else:
-     input_shape = (3, image_width, image_height)
+    input_shape = (3, image_width, image_height)
+
 pattern = Sequential() # Создание модели
 
 # Первый слой нейросети
 pattern.add(Conv2D(32, (3, 3), input_shape=input_shape))
 pattern.add(Activation('relu'))
-patternl.add(MaxPooling2D(pool_size=(2, 2)))
+pattern.add(MaxPooling2D(pool_size=(2, 2)))
 
 # Второй слой нейросети
 pattern.add(Conv2D(32, (3, 3)))
@@ -36,45 +72,37 @@ pattern.add(Conv2D(64, (3, 3)))
 pattern.add(Activation('relu'))
 pattern.add(MaxPooling2D(pool_size=(2, 2)))
 
-#Aктивация, свертка, объединение, исключение
+#Активация, свертка, объединение, исключение
 pattern.add(Flatten())
 pattern.add(Dense(64))
 pattern.add(Activation('relu'))
 pattern.add(Dropout(0.5))
-pattern.add(Dense(2))# число классов
+pattern.add(Dense(len(np.unique(y)))) # число классов
 pattern.add(Activation('softmax'))
 
-#Cкомпилируем модель с выбранными параметрами. Также укажем метрику для оценки.
+#Компилируем модель с выбранными параметрами. Укажем метрику для оценки.
 pattern.compile(loss='categorical_crossentropy',
-              optimizer='rmsprop',
-              metrics=['accuracy'])
+                optimizer='rmsprop',
+                metrics=['accuracy'])
+
 # Задаём параметры аугментации
 train_datagen = ImageDataGenerator(
-    rescale=1. / 255, # коэффициент масштабирования
-    shear_range=0.2, # Интенсивность сдвига
-    zoom_range=0.2, # Диапазон случайного увеличения
-    horizontal_flip=True) # Произвольный поворот по горизонтали
-test_datagen = ImageDataGenerator(rescale=1. / 255)
-#Предобработка обучающей выборки
-train_processing = train_datagen.flow_from_directory(
-    directory_data_train,
-    target_size=(image_width, image_height), # Размер изображений
-    batch_size=lot_size, #Размер пакетов данных
-    class_mode='categorical') # Режим класса
+    rescale=1. / 255,
+    shear_range=0.2,
+    zoom_range=0.2,
+    horizontal_flip=True)
 
-#Предобработка тестовой выборки
-validation_processing= test_datagen.flow_from_directory(
-    directory_data_validation,
-    target_size=(image_width, image_height),
-    batch_size=lot_size,
-    class_mode='categorical')
-pattern.fit_generator(
-    train_processing, # Помещаем обучающую выборку
-    steps_per_epoch=train_sample // lot_size, #количество итераций пакета до того, как период обучения считается завершенным
-    epochs=epochs, # Указываем количество эпох
-    validation_data=validation_processing, # Помещаем проверочную выборку
-    validation_steps=validation_sample  // lot_size) # Количество итерации, но на проверочном пакете данных
-pattern.save_weights('first_model_weights.h5') #Сохранение весов модели
-pattern.save('path') #Сохранение модели
-pattern.load_weights('first_model_weights.h5') # Загрузка весов модели
-prediction = pattern.predict(x) #Использование модели для предсказания
+# Предобработка обучающей выборки
+train_datagen.fit(X_train)
+
+# Обучение модели
+pattern.fit(
+    train_datagen.flow(X_train, y_train_enc, batch_size=25),
+    steps_per_epoch=len(X_train) // 25,
+    epochs=8,
+    validation_data=(X_test, y_test_enc),
+    validation_steps=len(X_test) // 25)
+
+# Сохранение весов модели
+pattern.save_weights('first_model_weights.weights.h5')
+pattern.save('first_model.h5')
