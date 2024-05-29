@@ -5,7 +5,7 @@ import threading
 
 def run_comb_script():
     try:
-        subprocess.run(["python", "comb.py"], check=True)
+        subprocess.run(["python", "Observer.py"], check=True)
     except subprocess.CalledProcessError as e:
         print(f"Error running comb.py: {e}")
 
