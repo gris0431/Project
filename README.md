@@ -84,13 +84,15 @@
 
 # Необходимые команды перед запуском проекта
 
-pip install mtcnn
-
-pip install tensorflow
-
 pip install opencv-python
-
-pip install dlib
+pip install numpy
+pip install pandas
+pip install tensorflow
+pip install keras
+pip install scikit-learn
+pip install torch
+pip install torchvision
+pip install pyTelegramBotAPI
 
 # Дополнительные модели
 dlib_face_recognition_resnet_model_v1.dat - модель для определения человека в кадре(проверяет есть ли человек в кадре, и, пока он не ушёл из кадра, программа не делает снимки)
