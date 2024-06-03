@@ -104,6 +104,8 @@ pip install pyTelegramBotAPI
 
 pip install telebot
 
+pip install opencv-python numpy pandas tensorflow keras scikit-learn torch torchvision pyTelegramBotAPI telebot
+
 # Дополнительные модели
 dlib_face_recognition_resnet_model_v1.dat - модель для определения человека в кадре(проверяет есть ли человек в кадре, и, пока он не ушёл из кадра, программа не делает снимки)
 
