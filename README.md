@@ -85,13 +85,21 @@
 # Необходимые команды перед запуском проекта
 
 pip install opencv-python
+
 pip install numpy
+
 pip install pandas
+
 pip install tensorflow
+
 pip install keras
+
 pip install scikit-learn
+
 pip install torch
+
 pip install torchvision
+
 pip install pyTelegramBotAPI
 
 # Дополнительные модели
