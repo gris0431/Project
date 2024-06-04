@@ -8,6 +8,7 @@ import os
 import time
 import random
 import cv2
+import csv
 
 allowed = [
     "701143942",
@@ -15,28 +16,22 @@ allowed = [
 ]
 
 bot = telebot.TeleBot('7058821742:AAFF-CXycpTOK8JNMNTK8sIRlJPjAWxuI2A')
-animals_dir = "photo/photo_network"
-cam_dir = "photo"
-images = os.listdir(animals_dir)
-for i in range(len(images)):
-    print(images[i])
 
-photos_num = len(images) - 1
+
+faces_dir = "photo/photo_network"
+cam_dir = "photo"
+
+access = False
 streaming = True
 learning = False
 improving = False
-names = ["котик",
-         "песик",
-         "хомячок"
-         ]
-
+names = []
 names_num = len(names) - 1
-
 
 @bot.message_handler(commands=['start', 'stop'])
 def start(message):
-    if (is_allowed(message)):
-        bot.send_message(message.chat.id, text="Доступ разрешен")
+    if (access):
+        print("starting...")
         global streaming
         global learning
         global improving
@@ -50,22 +45,31 @@ def start(message):
         keyboard.add(key_start_learning, key_start_correction, key_show_report)
         bot.send_message(message.chat.id, text="Режим дежурства", reply_markup=keyboard)
         check(message)
-        os.chdir("photo")
+        os.chdir(faces_dir)
         while streaming:
+            
             for filename in os.listdir():
+                if (filename.endswith(".opdownload")):
+                    filename = filename[:-11] 
                 current_time = time.time()
                 creation_time = os.path.getmtime(filename)
-                if (filename.endswith(".jpg")) and (current_time - creation_time < 15):
-                    bot.send_photo(message.chat.id, filename)
+                printed =[]
+                if (filename.endswith(".jpg")) and (current_time - creation_time < 10) and (filename not in printed):
+                    printed.append(filename)
+                    print(filename)
+                    print(current_time - creation_time)
+                    bot.send_photo(message.chat.id, open(filename, 'rb'))
                     bot.send_message(message.chat.id, text="Обнаружен человек")
     else:
-        bot.send_message(message.chat.id, text="Доступ запрещен")
+        is_allowed(message)
+        if (access):
+            start(message)
+        
 
 
 @bot.message_handler(commands=['check'])
 def check(message):
-    if (is_allowed(message)):
-        bot.send_message(message.chat.id, text="Доступ разрешен")
+    if (access):
         # Включаем первую камеру
         cap = cv2.VideoCapture(0)
         # "Прогреваем" камеру, чтобы снимок не был тёмным
@@ -80,13 +84,13 @@ def check(message):
         bot.send_photo(message.chat.id, open(cam_dir + "cam.png", 'rb'))
 
     else:
-        bot.send_message(message.chat.id, text="Доступ запрещен")
-
+        is_allowed(message)
+        if (access):
+            check(message)
 
 @bot.message_handler(commands=['learn'])
 def learn(message):
-    if (is_allowed(message)):
-        bot.send_message(message.chat.id, text="Доступ разрешен")
+    if (access):
         global streaming
         global learning
         streaming = False
@@ -101,13 +105,13 @@ def learn(message):
         bot.send_message(message.chat.id, text="Кто это?".format(names[j]))
 
     else:
-        bot.send_message(message.chat.id, text="Доступ запрещен")
-
+        is_allowed(message)
+        if (access):
+            learn(message)
 
 @bot.message_handler(commands=['improvement'])
 def improve(message):
-    if (is_allowed(message)):
-        bot.send_message(message.chat.id, text="Доступ разрешен")
+    if (access):
         global streaming
         global improving
         streaming = False
@@ -119,14 +123,14 @@ def improve(message):
         skip_btn = types.KeyboardButton("Нет человека")
         markup.add(yes_btn, no_btn, skip_btn, end_btn)
         bot.send_message(message.chat.id, text="Режим улучшения точности", reply_markup=markup)
-        i = random.randint(0, photos_num)
-        j = random.randint(0, names_num)
-        bot.send_photo(message.chat.id, open(animals_dir + "\\" + images[i], 'rb'))
-        bot.send_message(message.chat.id, text="Это {}?".format(names[j]))
+
+        # bot.send_photo(message.chat.id, open(animals_dir + "\\" + images[i], 'rb'))
+        bot.send_message(message.chat.id, text="Это {}?".format())
 
     else:
-        bot.send_message(message.chat.id, text="Доступ запрещен")
-
+        is_allowed(message)
+        if (access):
+            improve(message)
 
 @bot.message_handler(commands=['report'])
 def report(message):
@@ -135,7 +139,6 @@ def report(message):
         bot.send_message(message.chat.id, text=str(date) + report_message)
     else:
         wrong_command(message)
-
 
 @bot.message_handler(commands=['yes'])
 def yes(message):
@@ -148,7 +151,6 @@ def yes(message):
     else:
         wrong_command(message)
 
-
 @bot.message_handler(commands=['no'])
 def no(message):
     if (improving == True):
@@ -159,7 +161,6 @@ def no(message):
         bot.send_message(message.chat.id, text="Это {}?".format(names[j]))
     else:
         wrong_command(message)
-
 
 @bot.message_handler(commands=['skip'])
 def skip(message):
@@ -172,20 +173,23 @@ def skip(message):
     else:
         wrong_command(message)
 
-
 @bot.message_handler(commands=['help'])
 def help(message):
-    if (streaming == True):
-        bot.send_message(message.chat.id,
-                         text="/learn - начать обучение\n/improvement - начать улучшение точности\n/report - получить отчет за последние сутки\n/check - получить кадр с камеры")
+    if (access):
+        if (streaming == True):
+            bot.send_message(message.chat.id,
+                             text="/learn - начать обучение\n/improvement - начать улучшение точности\n/report - получить отчет за последние сутки\n/check - получить кадр с камеры")
 
-    elif (learning == True):
-        bot.send_message(message.chat.id, text="/stop - закончить обучение\n/check - получить кадр с камеры")
+        elif (learning == True):
+            bot.send_message(message.chat.id, text="/stop - закончить обучение\n/check - получить кадр с камеры")
 
+        else:
+            bot.send_message(message.chat.id,
+                             text="/yes - подтвердить идентификацию\n/no - опровергнуть идентификацию\n/skip - пропустить некорректное изображение\n/stop - закончить улучшение точности\n/check - получить кадр с камеры")
     else:
-        bot.send_message(message.chat.id,
-                         text="/yes - подтвердить идентификацию\n/no - опровергнуть идентификацию\n/skip - пропустить некорректное изображение\n/stop - закончить улучшение точности\n/check - получить кадр с камеры")
-
+        is_allowed(message)
+        if (access):
+            help(message)
 
 @bot.message_handler(content_types=['text'])
 def func(message):
@@ -222,23 +226,30 @@ def func(message):
     else:
         wrong_command(message)
 
-
 def stream(message):
     i = random.randint(0, photos_num)
     bot.send_photo(message.chat.id, open(animals_dir + "\\" + images[i], 'rb'))
     bot.send_message(message.chat.id, text="Обнаружено движение")
 
-
 def wrong_command(message):
     bot.send_message(message.chat.id,
                      text="Неверная команда, для того, чтобы посмотреть список доступных команд напишите /help")
 
-
 def is_allowed(message):
     print(message.chat.id)
     if (str(message.chat.id) in allowed):
+        bot.send_message(message.chat.id, text="Доступ разрешен")
+        global access
+        access = True
         return True
+    bot.send_message(message.chat.id, text="Доступ запрещен")
     return False
 
+def get_names():
+    with open("labels.csv", 'r') as csvfile:
+        reader = csv.reader(csvfile)
+        for row in reader:
+            if row[1] not in names:
+                names.append(row[1])
 
 bot.polling(none_stop=True, interval=0)
