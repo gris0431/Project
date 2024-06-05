@@ -115,11 +115,12 @@ def check(message):
         # Делаем снимок
         ret, frame = cap.read()
         # Записываем в файл
-        cv2.imwrite(cam_dir + 'cam.png', frame)
-        # Отключаем камеру
+        if (ret): 
+            cv2.imwrite(cam_dir + 'cam.png', frame)
+            # Отключаем камеру
+            bot.send_photo(message.chat.id, open(cam_dir + "cam.png", 'rb')
+        
         cap.release()
-        bot.send_photo(message.chat.id, open(cam_dir + "cam.png", 'rb'))
-
     else:
         is_allowed(message)
         if (access):
