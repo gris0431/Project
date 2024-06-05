@@ -48,12 +48,13 @@ def start(message):
         # os.chdir("photo/screenshot")
         # bot.send_photo(message.chat.id, open("", 'rb'))
         # os.chdir(os.pardir)
-        os.chdir("photo")
+        # os.chdir("photo")
         printed =[]
         # simulation()
         while streaming:
-            d = {}
+            os.chdir(faces_dir)
             os.chdir(os.pardir)
+            d = {}
             data = open("classification_results.txt", "r", encoding='utf-8')  
             labels = data.readlines()
             os.chdir("photo_network")
