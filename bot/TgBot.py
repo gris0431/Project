@@ -53,6 +53,7 @@ def start(message):
         # simulation()
         while streaming:
             d = {}
+            os.chdir(os.pardir)
             data = open("classification_results.txt", "r", encoding='utf-8')  
             labels = data.readlines()
             os.chdir("photo_network")
