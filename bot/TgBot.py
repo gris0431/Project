@@ -31,6 +31,7 @@ names_num = len(names) - 1
 @bot.message_handler(commands=['start', 'stop'])
 def start(message):
     if (access):
+        d = {}
         print("starting...")
         global streaming
         global learning
@@ -53,18 +54,14 @@ def start(message):
         # simulation()
         os.chdir("photo")
         while streaming:
-            
-            d = {}
             data = open("classification_results.txt", "r", encoding='utf-8')  
             labels = data.readlines()
-            
             for label in labels:
                 pair = label.split(' ')
                 # if (pair[1] not in faces_time):
                 #     faces_time[pair[1]] = time.time()
                 #     bot.send_photo(message.chat.id, open(pair[0], 'rb'))
                 #     bot.send_message(message.chat.id, text="Обнаружен человек {}".format(pair[1]))
-                    
                 d[pair[0]] = pair[1]
             
             os.chdir("photo_network")    
@@ -84,20 +81,18 @@ def start(message):
                         bot.send_photo(message.chat.id, open(filename, 'rb'))
                         bot.send_message(message.chat.id, text="Обнаружен человек {}".format(mark))
                         printed.append(filename)
+                        
+                else:
+                    print(filename, current_time - creation_time < 10, filename not in printed)
                     
-                        
-                #     else: 
-                #         print("not ready {} {}".format(filename, time.time() - faces_time[d[filename]]))
-                        
-                # else:
-                #     print("wrong format {}".format(filename))
             os.chdir(os.pardir)
             
     else:
         is_allowed(message)
         if (access):
             start(message)
-
+    
+    os.chdir(os.pardir)
 
 def simulation():
     with open('classification_results.txt', 'w') as f:
