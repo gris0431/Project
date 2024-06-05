@@ -45,14 +45,16 @@ def start(message):
         key_show_report = types.KeyboardButton('Показать отчет за последние сутки')
         keyboard.add(key_start_learning, key_start_correction, key_show_report)
         bot.send_message(message.chat.id, text="Режим дежурства", reply_markup=keyboard)
-        check(message)
-        os.chdir(faces_dir)
+        os.chdir("photo/screenshot")
+        bot.send_photo(message.chat.id, open("", 'rb'))
+        os.chdir(os.pardir)
+        os.chdir("photo_network")
         printed =[]
         # simulation()
         while streaming:
             d = {}
             os.chdir(os.pardir)
-            data = open("classification_results.txt", "r")
+            data = open("classification_results.txt", "r", encoding='utf-8')
             os.chdir("photo_network")
             labels = data.readlines()
             for label in labels:
