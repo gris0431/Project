@@ -57,7 +57,7 @@ def start(message):
             d = {}
             data = open("classification_results.txt", "r", encoding='utf-8')  
             labels = data.readlines()
-            os.chdir("photo_network")
+            
             for label in labels:
                 pair = label.split(' ')
                 # if (pair[1] not in faces_time):
@@ -66,13 +66,14 @@ def start(message):
                 #     bot.send_message(message.chat.id, text="Обнаружен человек {}".format(pair[1]))
                     
                 d[pair[0]] = pair[1]
-                                               
+            
+            os.chdir("photo_network")    
             for filename in os.listdir():
                 current_time = time.time()
                 creation_time = os.path.getmtime(filename)
                 mark = d[filename]
                 if (filename.endswith(".jpg")) and (current_time - creation_time < 10) and (filename not in printed):
-                    if (mark in faces_time):
+                    if (mark in faces_time and mark != "неопознан"):
                         if (current_time - faces_time[mark] >5):
                             bot.send_photo(message.chat.id, open(filename, 'rb'))
                             bot.send_message(message.chat.id, text="Обнаружен человек {}".format(mark))
