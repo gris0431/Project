@@ -72,6 +72,7 @@ def start(message):
                 if (filename.endswith(".jpg")) and (current_time - creation_time < 10) and (filename not in printed):
                     if (mark in faces_time and mark != "неопознан"):
                         if (current_time - faces_time[mark] >5):
+                            print(filename)
                             bot.send_photo(message.chat.id, open(filename, 'rb'))
                             bot.send_message(message.chat.id, text="Обнаружен человек {}".format(mark))
                             faces_time[mark] = current_time
@@ -79,11 +80,10 @@ def start(message):
                     else:
                         faces_time[mark] = current_time
                         bot.send_photo(message.chat.id, open(filename, 'rb'))
+                        print(filename)
                         bot.send_message(message.chat.id, text="Обнаружен человек {}".format(mark))
                         printed.append(filename)
                         
-                else:
-                    print(filename, current_time - creation_time < 10, filename not in printed)
                     
             os.chdir(os.pardir)
             
