@@ -40,7 +40,7 @@ python_executable = sys.executable
 
 with concurrent.futures.ThreadPoolExecutor() as executor:
     future_comb = executor.submit(run_comb_script, python_executable)
-    future_neural_network = executor.submit(run_neural_network_script, stop_event, python_executable)
+    #future_neural_network = executor.submit(run_neural_network_script, stop_event, python_executable)
     future_main = executor.submit(run_main_script, stop_event, python_executable)
     future_bot = executor.submit(run_bot_script, stop_event, python_executable)
 
