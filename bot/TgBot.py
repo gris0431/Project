@@ -48,7 +48,7 @@ def start(message):
         os.chdir("photo/screenshot")
         bot.send_photo(message.chat.id, open("", 'rb'))
         os.chdir(os.pardir)
-        os.chdir("photo_network")
+        os.chdir("")
         printed =[]
         # simulation()
         while streaming:
@@ -59,23 +59,30 @@ def start(message):
             labels = data.readlines()
             for label in labels:
                 pair = label.split(' ')
-                if (pair[1] not in faces_time):
-                    faces_time[pair[1]] = time.time()
-                    bot.send_photo(message.chat.id, open(pair[0], 'rb'))
-                    bot.send_message(message.chat.id, text="Обнаружен человек {}".format(pair[1]))
+                # if (pair[1] not in faces_time):
+                #     faces_time[pair[1]] = time.time()
+                #     bot.send_photo(message.chat.id, open(pair[0], 'rb'))
+                #     bot.send_message(message.chat.id, text="Обнаружен человек {}".format(pair[1]))
                     
                 d[pair[0]] = pair[1]
                                                
             for filename in os.listdir():
                 current_time = time.time()
                 creation_time = os.path.getmtime(filename)
+                mark = d[filename]
                 if (filename.endswith(".jpg")) and (current_time - creation_time < 10) and (filename not in printed):
-                    if (current_time - faces_time[d[filename]] > 5):
-                        mark = d[filename]
+                    if (mark in faces_time):
+                        if (current_time - faces_time[mark] >5):
+                            bot.send_photo(message.chat.id, open(filename, 'rb'))
+                            bot.send_message(message.chat.id, text="Обнаружен человек {}".format(mark))
+                            faces_time[mark] = current_time
+                            printed.append(filename)
+                    else:
                         faces_time[mark] = current_time
-                        printed.append(filename)
                         bot.send_photo(message.chat.id, open(filename, 'rb'))
                         bot.send_message(message.chat.id, text="Обнаружен человек {}".format(mark))
+                        printed.append(filename)
+                    
                         
                 #     else: 
                 #         print("not ready {} {}".format(filename, time.time() - faces_time[d[filename]]))
