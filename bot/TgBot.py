@@ -52,7 +52,8 @@ def start(message):
         printed =[]
         # simulation()
         while streaming:
-            os.chdir(faces_dir)
+            if (os.curdir != faces_dir):
+                os.chdir(faces_dir)
             os.chdir(os.pardir)
             d = {}
             data = open("classification_results.txt", "r", encoding='utf-8')  
