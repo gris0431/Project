@@ -3,15 +3,12 @@ import cv2
 import os
 import time
 
-
 def cosine_similarity(a, b):
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
-
 
 # Установка HOG детектора и экстрактора дескрипторов HOG
 hog_detector = cv2.HOGDescriptor()
 hog_detector.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
-
 
 # Функция для вычисления HOG-дескрипторов для вырезанного региона
 def get_hog_descriptor(image):
@@ -19,13 +16,27 @@ def get_hog_descriptor(image):
     hog_descriptor = hog_detector.compute(resized_image)
     return hog_descriptor.flatten()
 
-
 # Настройки видеозахвата
 cv2.startWindowThread()
 cap = cv2.VideoCapture(0)
 
-if not os.path.exists('photo'):
-    os.makedirs('photo')
+# Создание папок для хранения фотографий и скриншотов, если они не существуют
+photo_dir = 'photo'
+screenshot_dir = 'screenshot'
+
+if not os.path.exists(photo_dir):
+    os.makedirs(photo_dir)
+
+# Проверка на существование папки screenshot и создание её, если её нет
+if not os.path.exists(screenshot_dir):
+    os.makedirs(screenshot_dir)
+
+# Создание скриншота при запуске программы
+ret, frame = cap.read()
+if ret:
+    timestamp = time.strftime("%Y%m%d%H%M%S")
+    screenshot_path = os.path.join(screenshot_dir, f'screenshot_{timestamp}.jpg')
+    cv2.imwrite(screenshot_path, frame)
 
 known_persons = []
 frame_interval = 30  # Интервал между снимками в кадрах
@@ -51,8 +62,7 @@ while True:
     # Проверка изменения в кадре
     if previous_frame is not None:
         diff = cv2.absdiff(previous_frame, gray)
-        if np.sum(
-                diff) < 1e5:  # Например, если изменение в кадре незначительное - можно изменить значение по необходимости
+        if np.sum(diff) < 1e5:  # Например, если изменение в кадре незначительное - можно изменить значение по необходимости
             continue
 
     previous_frame = gray  # Обновление предыдущего кадра
@@ -70,18 +80,17 @@ while True:
             for descriptor in current_person_descriptors:
                 known_persons.append(descriptor)
                 timestamp = time.strftime("%Y%m%d%H%M%S")
-                photo_path = os.path.join('photo', f'photo_{timestamp}.jpg')
+                photo_path = os.path.join(photo_dir, f'photo_{timestamp}.jpg')
                 cv2.imwrite(photo_path, frame_resized)
         else:
             is_any_new_person = False
             for current_descriptor in current_person_descriptors:
-                if all(cosine_similarity(current_descriptor, known_descriptor) < tolerance for known_descriptor in
-                       known_persons):
+                if all(cosine_similarity(current_descriptor, known_descriptor) < tolerance for known_descriptor in known_persons):
                     is_any_new_person = True
             if is_any_new_person:
                 known_persons = current_person_descriptors  # Обновление известных силуэтов
                 timestamp = time.strftime("%Y%m%d%H%M%S")
-                photo_path = os.path.join('photo', f'photo_{timestamp}.jpg')
+                photo_path = os.path.join(photo_dir, f'photo_{timestamp}.jpg')
                 cv2.imwrite(photo_path, frame_resized)
 
     # Отрисовка рамок
