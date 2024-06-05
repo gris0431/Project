@@ -84,7 +84,7 @@ def start(message):
                         bot.send_message(message.chat.id, text="Обнаружен человек {}".format(mark))
                         printed.append(filename)
                         
-                    
+                print (filename, current_time - creation_time, filename not in printed)    
             os.chdir(os.pardir)
             
     else:
