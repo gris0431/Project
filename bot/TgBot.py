@@ -20,7 +20,7 @@ bot = telebot.TeleBot('7058821742:AAFF-CXycpTOK8JNMNTK8sIRlJPjAWxuI2A')
 
 faces_dir = "photo/photo_network"
 cam_dir = "photo"
-
+faces_time={}
 access = False
 streaming = True
 learning = False
@@ -35,6 +35,7 @@ def start(message):
         global streaming
         global learning
         global improving
+        global faces_time
         streaming = True
         learning = False
         improving = False
@@ -46,25 +47,61 @@ def start(message):
         bot.send_message(message.chat.id, text="Режим дежурства", reply_markup=keyboard)
         check(message)
         os.chdir(faces_dir)
+        printed =[]
+        # simulation()
         while streaming:
-            
+            d = {}
+            os.chdir(os.pardir)
+            data = open("classification_results.txt", "r")
+            os.chdir("photo_network")
+            labels = data.readlines()
+            for label in labels:
+                pair = label.split(' ')
+                if (pair[1] not in faces_time):
+                    faces_time[pair[1]] = time.time()
+                    bot.send_photo(message.chat.id, open(pair[0], 'rb'))
+                    bot.send_message(message.chat.id, text="Обнаружен человек {}".format(pair[1]))
+                    
+                d[pair[0]] = pair[1]
+                                               
             for filename in os.listdir():
-                if (filename.endswith(".opdownload")):
-                    filename = filename[:-11] 
                 current_time = time.time()
                 creation_time = os.path.getmtime(filename)
-                printed =[]
                 if (filename.endswith(".jpg")) and (current_time - creation_time < 10) and (filename not in printed):
-                    printed.append(filename)
-                    print(filename)
-                    print(current_time - creation_time)
-                    bot.send_photo(message.chat.id, open(filename, 'rb'))
-                    bot.send_message(message.chat.id, text="Обнаружен человек")
+                    if (current_time - faces_time[d[filename]] > 5):
+                        mark = d[filename]
+                        faces_time[mark] = current_time
+                        printed.append(filename)
+                        bot.send_photo(message.chat.id, open(filename, 'rb'))
+                        bot.send_message(message.chat.id, text="Обнаружен человек {}".format(mark))
+                        
+                #     else: 
+                #         print("not ready {} {}".format(filename, time.time() - faces_time[d[filename]]))
+                        
+                # else:
+                #     print("wrong format {}".format(filename))
     else:
         is_allowed(message)
         if (access):
             start(message)
-        
+
+
+def simulation():
+    with open('classification_results.txt', 'w') as f:
+            f.write('')
+    k = 0
+    cap = cv2.VideoCapture(0)
+    for i in range(30):
+        cap.read()
+    while (k<=100):
+        ret, frame = cap.read()
+        cv2.imwrite('cam{}.jpg'.format(k), frame)
+        os.chdir(os.pardir)
+        with open('classification_results.txt', 'a') as f:
+            f.write('cam{}.jpg'.format(k)+' {} \n'.format(k%2))
+        k+=1
+        os.chdir("photo_network")
+    cap.release()
 
 
 @bot.message_handler(commands=['check'])
