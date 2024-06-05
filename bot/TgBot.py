@@ -51,10 +51,9 @@ def start(message):
         # os.chdir("photo")
         printed =[]
         # simulation()
+        os.chdir("photo")
         while streaming:
-            if (os.curdir != faces_dir):
-                os.chdir(faces_dir)
-            os.chdir(os.pardir)
+            
             d = {}
             data = open("classification_results.txt", "r", encoding='utf-8')  
             labels = data.readlines()
@@ -91,6 +90,8 @@ def start(message):
                         
                 # else:
                 #     print("wrong format {}".format(filename))
+            os.chdir(os.pardir)
+            
     else:
         is_allowed(message)
         if (access):
