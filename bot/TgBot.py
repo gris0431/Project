@@ -53,9 +53,9 @@ def start(message):
         # simulation()
         while streaming:
             d = {}
-            data = open("classification_results.txt", "r", encoding='utf-8')
-            os.chdir("photo_network")
+            data = open("classification_results.txt", "r", encoding='utf-8')  
             labels = data.readlines()
+            os.chdir("photo_network")
             for label in labels:
                 pair = label.split(' ')
                 # if (pair[1] not in faces_time):
