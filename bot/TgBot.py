@@ -17,7 +17,6 @@ allowed = [
 
 bot = telebot.TeleBot('7058821742:AAFF-CXycpTOK8JNMNTK8sIRlJPjAWxuI2A')
 
-
 faces_dir = "photo/photo_network"
 cam_dir = "photo"
 faces_time={}
@@ -25,8 +24,6 @@ access = False
 streaming = True
 learning = False
 improving = False
-names = []
-names_num = len(names) - 1
 
 @bot.message_handler(commands=['start', 'stop'])
 def start(message):
@@ -145,10 +142,8 @@ def learn(message):
         back_btn = types.KeyboardButton("Закончить обучение")
         markup.add(back_btn)
         bot.send_message(message.chat.id, text="Режим обучения", reply_markup=markup)
-        i = random.randint(0, photos_num)
-        j = random.randint(0, names_num)
-        bot.send_photo(message.chat.id, open(animals_dir + "\\" + images[i], 'rb'))
-        bot.send_message(message.chat.id, text="Кто это?".format(names[j]))
+        bot.send_photo(message.chat.id, open(faces_dir, 'rb'))
+        bot.send_message(message.chat.id, text="Кто это?")
 
     else:
         is_allowed(message)
@@ -190,10 +185,8 @@ def report(message):
 def yes(message):
     if (improving == True):
         bot.send_message(message.chat.id, text="Супер")
-        i = random.randint(0, photos_num)
-        j = random.randint(0, names_num)
-        bot.send_photo(message.chat.id, open(animals_dir + "\\" + images[i], 'rb'))
-        bot.send_message(message.chat.id, text="Это {}?".format(names[j]))
+        bot.send_photo(message.chat.id, open(faces_dir, 'rb'))
+        bot.send_message(message.chat.id, text="Это {}?".format())
     else:
         wrong_command(message)
 
@@ -201,10 +194,8 @@ def yes(message):
 def no(message):
     if (improving == True):
         bot.send_message(message.chat.id, text="Принято")
-        i = random.randint(0, photos_num)
-        j = random.randint(0, names_num)
-        bot.send_photo(message.chat.id, open(animals_dir + "\\" + images[i], 'rb'))
-        bot.send_message(message.chat.id, text="Это {}?".format(names[j]))
+        bot.send_photo(message.chat.id, open(faces_dir, 'rb'))
+        bot.send_message(message.chat.id, text="Это {}?".format())
     else:
         wrong_command(message)
 
@@ -212,10 +203,8 @@ def no(message):
 def skip(message):
     if (improving == True):
         bot.send_message(message.chat.id, text="Прошу прощения")
-        i = random.randint(0, photos_num)
-        j = random.randint(0, names_num)
-        bot.send_photo(message.chat.id, open(animals_dir + "\\" + images[i], 'rb'))
-        bot.send_message(message.chat.id, text="Это {}?".format(names[j]))
+        bot.send_photo(message.chat.id, open(faces_dir, 'rb'))
+        bot.send_message(message.chat.id, text="Это {}?".format())
     else:
         wrong_command(message)
 
@@ -265,17 +254,11 @@ def func(message):
 
     elif (learning == True and message.text in names):
         bot.send_message(message.chat.id, text="Я запомню")
-        i = random.randint(0, photos_num)
-        bot.send_photo(message.chat.id, open(animals_dir + "\\" + images[i], 'rb'))
+        bot.send_photo(message.chat.id, open(faces_dir, 'rb'))
         bot.send_message(message.chat.id, text="Кто это?")
 
     else:
         wrong_command(message)
-
-def stream(message):
-    i = random.randint(0, photos_num)
-    bot.send_photo(message.chat.id, open(animals_dir + "\\" + images[i], 'rb'))
-    bot.send_message(message.chat.id, text="Обнаружено движение")
 
 def wrong_command(message):
     bot.send_message(message.chat.id,
@@ -290,12 +273,5 @@ def is_allowed(message):
         return True
     bot.send_message(message.chat.id, text="Доступ запрещен")
     return False
-
-def get_names():
-    with open("labels.csv", 'r') as csvfile:
-        reader = csv.reader(csvfile)
-        for row in reader:
-            if row[1] not in names:
-                names.append(row[1])
 
 bot.polling(none_stop=True, interval=0)
