@@ -106,7 +106,22 @@ pip install telebot
 
 pip install opencv-python numpy pandas tensorflow keras scikit-learn torch torchvision pyTelegramBotAPI telebot
 
-# Дополнительные модели
-dlib_face_recognition_resnet_model_v1.dat - модель для определения человека в кадре(проверяет есть ли человек в кадре, и, пока он не ушёл из кадра, программа не делает снимки)
+# Установка
 
-shape_predictor_68_face_landmarks.dat - 68 точечная модель для определения лица человека
+Скачайте проект.
+
+Распакуйте zip архив.
+
+Перенесите TeleBot.py из папки bot в папку python.
+
+# Обучение 
+
+Запустите Observer.py чтобы собрать первые фото.
+
+Запустите prep.py для обработки(обрезания) полученных фото.
+
+Запустите pd.py для создания csv файла с фото, замените в столбце label photo_network для каждой записи на ФИО человека на картинке.
+
+Запустите classificator.py для создания модели на основе получившегося csv файла.
+
+Запустите script.py для обнаружения и классификации получаемого изображения с камеры.
