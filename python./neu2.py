@@ -35,7 +35,7 @@ def classify_cropped_images(model, output, target_size, cropped_img_path, result
 
     # Записываем результаты в текстовый файл
     with open(results_file, 'a', encoding="utf-8") as results_f:
-        results_f.write(f"{os.path.basename(cropped_img_path)}: {predicted_label}\n")
+        results_f.write(f"{os.path.basename(cropped_img_path)} {predicted_label}\n")
 
     # Записываем class_id или "неопознан" в class_ids_file
     with open(class_ids_file, 'a', encoding="utf-8") as f:
@@ -92,8 +92,6 @@ if __name__ == "__main__":
     if os.path.exists(processed_files_log):
         with open(processed_files_log, 'r', encoding="utf-8") as f:
             processed_files = json.load(f)
-    else:
-        processed_files = {}
 
     output_folder = "photo_network"
     if not os.path.exists(output_folder):
@@ -102,19 +100,19 @@ if __name__ == "__main__":
     target_size = (250, 250)
 
     results_file = "classification_results.txt"
-    if os.path.exists(results_file):
-        os.remove(results_file)  # Удаляем файл, если он существует, чтобы начать с чистого листа
+    #if os.path.exists(results_file):
+        #os.remove(results_file)  # Удаляем файл, если он существует, чтобы начать с чистого листа
 
     class_ids_file = "class_ids.txt"
-    if os.path.exists(class_ids_file):
-        os.remove(class_ids_file)  # Удаляем файл, если он существует, чтобы начать с чистого листа
+    #if os.path.exists(class_ids_file):
+        #os.remove(class_ids_file)  # Удаляем файл, если он существует, чтобы начать с чистого листа
 
     while True:
         process_images_from_folder(yolo_model, model, output, target_size, processed_files, processed_files_log,
                                    output_folder, results_file, class_ids_file)
         os.chdir('..')
 
-        time.sleep(0.5)
+        #time.sleep(0.5)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
