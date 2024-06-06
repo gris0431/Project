@@ -62,7 +62,7 @@ while True:
                     silhouette_image = image[y1:y2, x1:x2]
 
                     # Save cropped silhouette images in the output folder
-                    cv2.imwrite(os.path.join(output_folder, f"photo_{i + 1}_{filename}"), silhouette_image)
+                    cv2.imwrite(os.path.join(output_folder, f"{filename}_person_{person_count}"), silhouette_image)
                     print(f"Saved cropped silhouette {i + 1} from {filename}")
             else:
                 print(f"No people found in {filename}")
